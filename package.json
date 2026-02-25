@@ -1,0 +1,53 @@
+{
+  "name": "khettech-next",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KhetTech - Next.js Edition",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "node scripts/seed.js",
+    "verify": "node scripts/verify-setup.js",
+    "setup": "npm install && npm run verify"
+  },
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "axios": "^1.13.5",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^0.475.0",
+    "mongoose": "^9.2.1",
+    "multer": "^2.0.2",
+    "next": "16.1.6",
+    "nodemailer": "^8.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "twilio": "^5.4.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "keywords": [
+    "agriculture",
+    "farming",
+    "nextjs",
+    "react",
+    "mongodb",
+    "smart-farming"
+  ],
+  "author": "Smart Farmer Team",
+  "license": "MIT"
+}

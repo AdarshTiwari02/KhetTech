@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "JWT_SECRET": "@jwt_secret",
+    "WEATHER_API_KEY": "@weather_api_key",
+    "NEXT_PUBLIC_WEATHER_API_KEY": "@weather_api_key"
+  }
+}
