@@ -9,7 +9,7 @@ Copy and paste these in Vercel Dashboard → Settings → Environment Variables
 ### 1. Database Configuration
 ```
 Name: MONGODB_URI
-Value: mongodb+srv://your-username:your-password@cluster.mongodb.net/smart-farmer?retryWrites=true&w=majority
+Value: mongodb+srv://khettechofficial_db_user:QlylldeOf23FLdBA@cluster0.mbpohro.mongodb.net/khettech?retryWrites=true&w=majority
 ```
 **Note:** For production, use MongoDB Atlas (free tier available at https://www.mongodb.com/cloud/atlas)
 - Replace `your-username` with your MongoDB username
@@ -118,7 +118,7 @@ Value: KhetTech <khettechofficial@gmail.com>
 For easy copy-paste in Vercel:
 
 ```
-MONGODB_URI=mongodb+srv://your-username:your-password@cluster.mongodb.net/smart-farmer?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://khettechofficial_db_user:QlylldeOf23FLdBA@cluster0.mbpohro.mongodb.net/khettech?retryWrites=true&w=majority
 JWT_SECRET=smartfarmer_super_secret_key_2024_change_in_production
 WEATHER_API_KEY=750027b9e882357eb383a8c4f892a058
 NEXT_PUBLIC_WEATHER_API_KEY=750027b9e882357eb383a8c4f892a058
