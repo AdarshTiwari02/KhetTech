@@ -2,6 +2,8 @@
 
 एक comprehensive farming application जो किसानों को आधुनिक तकनीक से सशक्त बनाता है। पूरी तरह से हिंदी में।
 
+🔗 **[लाइव प्रोजेक्ट देखें / Live Preview](https://khet-tech-ai-farmer-assistant-bbd.vercel.app/landing)**
+
 ## ✨ Features
 
 ### 🌦️ मौसम पूर्वानुमान
