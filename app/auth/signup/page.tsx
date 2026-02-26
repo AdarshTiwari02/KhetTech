@@ -3,20 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mail, Lock, User as UserIcon, ArrowRight, Eye, EyeOff, Sprout, CheckCircle } from 'lucide-react';
+import { Mail, User as UserIcon, ArrowRight, Sprout, CheckCircle } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState<'details' | 'otp'>('details');
   const [formData, setFormData] = useState({
-    name: '', email: '', password: '', confirmPassword: '', otp: ''
+    name: '', email: '', otp: ''
   });
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+
 
   // Load saved state on mount
   useEffect(() => {
@@ -39,12 +38,11 @@ export default function SignupPage() {
       // Don't save OTP or confirm password as they are highly temporal/sensitive
       const dataToSave = {
         name: formData.name,
-        email: formData.email,
-        password: formData.password
+        email: formData.email
       };
       localStorage.setItem('signup-data', JSON.stringify(dataToSave));
     }
-  }, [step, formData.name, formData.email, formData.password, isClient]);
+  }, [step, formData.name, formData.email, isClient]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
@@ -55,8 +53,6 @@ export default function SignupPage() {
     e.preventDefault();
     if (!formData.name.trim()) return setError('कृपया अपना नाम दर्ज करें');
     if (!formData.email.includes('@')) return setError('कृपया एक वैध ईमेल पता दर्ज करें');
-    if (formData.password.length < 6) return setError('पासवर्ड कम से कम 6 अक्षर का होना चाहिए');
-    if (formData.password !== formData.confirmPassword) return setError('पासवर्ड मेल नहीं खाते');
     if (!termsAccepted) return setError('कृपया नियम और शर्तें स्वीकार करें');
 
     setIsLoading(true);
@@ -91,7 +87,7 @@ export default function SignupPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name, email: formData.email,
-          password: formData.password, otp: formData.otp
+          otp: formData.otp
         }),
       });
       const data = await res.json();
@@ -216,33 +212,7 @@ export default function SignupPage() {
                   </div>
                 </div>
 
-                {/* Password */}
-                <div>
-                  <label style={labelStyle}>पासवर्ड * <span style={{ color: 'rgba(148,163,184,0.5)', fontWeight: 400 }}>(न्यूनतम 6 अक्षर)</span></label>
-                  <div style={{ position: 'relative' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(100,116,139,0.8)', pointerEvents: 'none' }} />
-                    <input type={showPass ? 'text' : 'password'} name="password" value={formData.password} onChange={handleChange} placeholder="पासवर्ड बनाएं" required style={{ ...inputStyle, paddingRight: 44 }}
-                      onFocus={e => e.target.style.borderColor = 'rgba(16,185,129,0.6)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
-                    <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(100,116,139,0.8)', padding: 0 }}>
-                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
 
-                {/* Confirm Password */}
-                <div>
-                  <label style={labelStyle}>पासवर्ड की पुष्टि करें *</label>
-                  <div style={{ position: 'relative' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'rgba(100,116,139,0.8)', pointerEvents: 'none' }} />
-                    <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="दोबारा पासवर्ड दर्ज करें" required style={{ ...inputStyle, paddingRight: 44 }}
-                      onFocus={e => e.target.style.borderColor = 'rgba(16,185,129,0.6)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
-                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(100,116,139,0.8)', padding: 0 }}>
-                      {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
 
                 {/* Terms */}
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>

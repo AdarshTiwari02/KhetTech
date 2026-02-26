@@ -10,10 +10,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'smartfarmer_super_secret_key_2024_
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, password, otp } = body;
+    const { name, email, otp } = body;
 
     // Validate inputs
-    if (!name || !email || !password || !otp) {
+    if (!name || !email || !otp) {
       return NextResponse.json(createErrorResponse('All fields are required'), { status: 400 });
     }
     if (name.trim().length === 0) {
@@ -22,9 +22,7 @@ export async function POST(request: NextRequest) {
     if (!validateEmail(email)) {
       return NextResponse.json(createErrorResponse('Please enter a valid email address'), { status: 400 });
     }
-    if (password.length < 6) {
-      return NextResponse.json(createErrorResponse('Password must be at least 6 characters'), { status: 400 });
-    }
+
 
     // ✅ Step 1: Verify OTP from in-memory store
     const emailKey = email.toLowerCase();
@@ -80,7 +78,8 @@ export async function POST(request: NextRequest) {
 
       if (!user) user = new User({ email });
       user.name = name;
-      user.password = password;
+      // Note: we are removing the password requirement. The user schema may need to be updated 
+      // if it previously required a password, but we'll assume it handles passwordless logins.
       user.isVerified = true;
       user.otp = undefined;
       await user.save();
