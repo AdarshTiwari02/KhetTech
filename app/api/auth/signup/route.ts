@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
       await Promise.race([
         connectToDatabase(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB timeout')), 8000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB timeout')), 15000))
       ]);
 
       let user = await User.findOne({ email });

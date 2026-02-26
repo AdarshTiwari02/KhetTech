@@ -15,7 +15,7 @@ async function tryMongoUser(email: string) {
     const { User } = await import('@/lib/db/models/User');
     await Promise.race([
       connectToDatabase(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000))
     ]);
     return await User.findOne({ email });
   } catch {
