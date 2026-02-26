@@ -131,19 +131,7 @@ export default function LandingPage() {
         padding: '80px 24px 40px', minHeight: 'calc(100vh - 85px)'
       }}>
 
-        {/* Badge */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
-          borderRadius: 100, padding: '6px 16px', marginBottom: 32
-        }}>
-          <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-          <span style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 500 }}>
-            10,000+ किसान जुड़ चुके हैं
-          </span>
-        </div>
 
-        {/* Main Heading */}
         <h1 style={{
           fontSize: 'clamp(36px, 6vw, 72px)',
           fontWeight: 800, lineHeight: 1.1,
@@ -224,8 +212,6 @@ export default function LandingPage() {
           borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 40
         }}>
           {[
-            { value: '10,000+', label: 'सक्रिय किसान' },
-            { value: '₹2.5 Cr+', label: 'मुनाफा बढ़ा' },
             { value: '65+', label: 'फसल किस्में' },
             { value: '24/7', label: 'AI सहायता' },
           ].map((s, i) => (
