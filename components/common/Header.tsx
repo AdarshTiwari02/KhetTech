@@ -1,20 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, User, LogOut, Menu, X, MapPin, Sun, Moon, Home, Cloud, Sprout, Bug, TrendingUp, Store, Award } from 'lucide-react';
+import { Bell, User, LogOut, Menu, X, MapPin, Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/components/common/ThemeProvider';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
-const mobileNavItems = [
-  { id: 'home', label: 'होम', icon: Home, href: '/dashboard' },
-  { id: 'weather', label: 'मौसम', icon: Cloud, href: '/weather' },
-  { id: 'crops', label: 'फसल सुझाव', icon: Sprout, href: '/crops' },
-  { id: 'diseases', label: 'रोग पहचान', icon: Bug, href: '/diseases' },
-  { id: 'prices', label: 'मंडी भाव', icon: TrendingUp, href: '/prices' },
-  { id: 'marketplace', label: 'बाजार', icon: Store, href: '/marketplace' },
-  { id: 'schemes', label: 'सरकारी योजनाएं', icon: Award, href: '/schemes' },
-];
 
 export default function Header() {
   const { isDark, toggleTheme } = useTheme();
@@ -22,7 +10,6 @@ export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const pathname = usePathname();
 
   const [user, setUser] = useState<any>(null);
   const [userLocation, setUserLocation] = useState<string>('');
@@ -379,31 +366,6 @@ export default function Header() {
           </div>
         </div>
       </div>
-
-      {/* Mobile Dropdown Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden absolute top-[68px] left-0 w-full bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 shadow-xl z-50 transition-all duration-300">
-          <nav className="flex flex-col py-2 px-4 max-h-[80vh] overflow-y-auto">
-            {mobileNavItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg my-1 transition-colors ${isActive
-                    ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-semibold'
-                    : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800'
-                    }`}
-                >
-                  <item.icon size={20} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      )}
     </header>
   );
 }

@@ -52,7 +52,7 @@ export default function Navigation() {
         onClick={() => setIsCollapsed(!isCollapsed)}
         aria-label={isCollapsed ? 'मेनू खोलें' : 'मेनू बंद करें'}
         title={isCollapsed ? 'मेनू खोलें' : 'मेनू बंद करें'}
-        className="hidden lg:flex group items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors duration-200 w-full"
+        className="group flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors duration-200 w-full"
       >
         {/* Animated 3-line hamburger */}
         <div className="relative w-5 h-4 flex flex-col justify-between flex-shrink-0">
