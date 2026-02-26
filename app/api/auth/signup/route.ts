@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { validateEmail } from '@/lib/utils/validators';
 import { createSuccessResponse, createErrorResponse } from '@/lib/utils/helpers';
 import { otpStore } from '@/lib/utils/otpStore';
-import { createLocalUser, findUserByEmail } from '@/lib/db/localDb';
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'smartfarmer_super_secret_key_2024_change_in_production';
 
@@ -56,30 +56,28 @@ export async function POST(request: NextRequest) {
     otpStore.delete(emailKey);
     console.log('[SIGNUP] ✅ OTP verified for:', email);
 
-    // ✅ Step 2: Check if user already exists locally
-    const existingUser = findUserByEmail(email);
-    if (existingUser) {
-      return NextResponse.json(
-        createErrorResponse('Email already registered. Please login instead.'),
-        { status: 400 }
-      );
-    }
-
-    // ✅ Step 3: Try MongoDB first, fallback to local JSON storage
+    // ✅ Step 3: Save to MongoDB
     let userId: string;
     let savedName = name;
 
     try {
-      // Try MongoDB Atlas
+      // Connect to MongoDB Atlas
       const { connectToDatabase } = await import('@/lib/db/mongodb');
       const { User } = await import('@/lib/db/models/User');
 
       await Promise.race([
         connectToDatabase(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB timeout')), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB timeout')), 8000))
       ]);
 
       let user = await User.findOne({ email });
+      if (user && user.isVerified) {
+        return NextResponse.json(
+          createErrorResponse('Email already registered. Please login instead.'),
+          { status: 400 }
+        );
+      }
+
       if (!user) user = new User({ email });
       user.name = name;
       user.password = password;
@@ -90,11 +88,11 @@ export async function POST(request: NextRequest) {
       console.log('[SIGNUP] ✅ User saved to MongoDB:', email);
 
     } catch (mongoError: any) {
-      console.log('[SIGNUP] MongoDB unavailable, using local storage:', mongoError?.message);
-
-      // Fallback: save to local JSON file
-      const localUser = await createLocalUser(name, email, password);
-      userId = localUser.id;
+      console.error('[SIGNUP] MongoDB Error:', mongoError?.message);
+      return NextResponse.json(
+        createErrorResponse('Database connection failed. Please try again later.'),
+        { status: 500 }
+      );
     }
 
     // ✅ Step 4: Generate JWT token

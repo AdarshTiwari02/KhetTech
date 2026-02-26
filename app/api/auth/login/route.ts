@@ -4,7 +4,7 @@ import { validateEmail } from '@/lib/utils/validators';
 import { createSuccessResponse, createErrorResponse } from '@/lib/utils/helpers';
 import { sendOTP } from '@/lib/utils/sms';
 import { otpStore } from '@/lib/utils/otpStore';
-import { findUserByEmail, verifyLocalPassword } from '@/lib/db/localDb';
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'smartfarmer_super_secret_key_2024_change_in_production';
 
@@ -37,18 +37,13 @@ export async function POST(request: NextRequest) {
 
     // ── STEP 1: Send OTP / start login ──────────────────────
     if (action === 'send-otp') {
-      // Check local users first (fast, no network)
-      const localUser = findUserByEmail(email);
-
-      if (!localUser) {
-        // Try MongoDB
-        const mongoUser = await tryMongoUser(email);
-        if (!mongoUser || !mongoUser.isVerified) {
-          return NextResponse.json(
-            createErrorResponse('यह ईमेल रजिस्टर नहीं है। पहले साइन अप करें।'),
-            { status: 404 }
-          );
-        }
+      // Try MongoDB
+      const mongoUser = await tryMongoUser(email);
+      if (!mongoUser || !mongoUser.isVerified) {
+        return NextResponse.json(
+          createErrorResponse('यह ईमेल रजिस्टर नहीं है। पहले साइन अप करें।'),
+          { status: 404 }
+        );
       }
 
       // Generate OTP and store in memory
@@ -65,18 +60,6 @@ export async function POST(request: NextRequest) {
 
     // ── STEP 2: Login with password (if app uses password login) ──
     if (action === 'login' || (!action && password)) {
-      // Check local users first
-      const localUser = await verifyLocalPassword(email, password);
-      if (localUser) {
-        const token = jwt.sign({ userId: localUser.id, email: localUser.email }, JWT_SECRET, { expiresIn: '7d' });
-        return NextResponse.json(
-          createSuccessResponse('लॉगिन सफल', {
-            token,
-            user: { id: localUser.id, name: localUser.name, email: localUser.email, isVerified: localUser.isVerified }
-          })
-        );
-      }
-
       // Try MongoDB
       const mongoUser = await tryMongoUser(email);
       if (!mongoUser) {
@@ -114,18 +97,7 @@ export async function POST(request: NextRequest) {
 
       otpStore.delete(emailKey);
 
-      // Find user (local or mongo)
-      const localUser = findUserByEmail(email);
-      if (localUser) {
-        const token = jwt.sign({ userId: localUser.id, email: localUser.email }, JWT_SECRET, { expiresIn: '7d' });
-        return NextResponse.json(
-          createSuccessResponse('लॉगिन सफल', {
-            token,
-            user: { id: localUser.id, name: localUser.name, email: localUser.email, isVerified: true }
-          })
-        );
-      }
-
+      // Find user (mongo)
       const mongoUser = await tryMongoUser(email);
       if (!mongoUser) {
         return NextResponse.json(createErrorResponse('उपयोगकर्ता नहीं मिला'), { status: 404 });
