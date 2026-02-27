@@ -163,7 +163,7 @@ export default function Header() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="bg-gradient-to-r from-emerald-600 to-emerald-800 dark:from-slate-900 dark:to-slate-800 text-white shadow-lg border-b border-emerald-700 dark:border-slate-700 transition-colors duration-300">
+    <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg border-b border-slate-700 transition-colors duration-300">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Logo and Brand */}
