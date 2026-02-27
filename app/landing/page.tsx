@@ -51,13 +51,10 @@ export default function LandingPage() {
       }} />
 
       {/* ── TOP NAV ── */}
-      <nav style={{
+      <nav className="bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 shadow-lg" style={{
         position: 'relative', zIndex: 10,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '20px 40px',
-        borderBottom: '1px solid rgba(16,185,129,0.1)',
-        backdropFilter: 'blur(10px)',
-        background: 'rgba(0,0,0,0.2)'
       }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
