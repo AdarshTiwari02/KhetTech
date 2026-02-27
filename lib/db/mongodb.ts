@@ -1,4 +1,8 @@
 import mongoose from 'mongoose';
+import dns from 'dns';
+
+// Fix for Node.js 18+ IPv6 DNS resolution issue with MongoDB
+dns.setDefaultResultOrder('ipv4first');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-farmer';
 
@@ -29,6 +33,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      family: 4, // Force IPv4 to resolve ECONNREFUSED SRV errors
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts);
