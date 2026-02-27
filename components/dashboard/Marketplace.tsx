@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Store, ShoppingCart, Plus, Search, Filter, MapPin, Phone, User, X, Trash2, Keyboard } from 'lucide-react';
 import HindiKeyboard from '@/components/common/HindiKeyboard';
 
 interface MarketItem {
-  id: number;
+  id: string | number;
   type: 'खरीदें' | 'बेचें';
   category: string;
   item: string;
@@ -19,18 +19,17 @@ interface MarketItem {
   postedDate: string;
 }
 
-const marketItems: MarketItem[] = [];
-
 export default function Marketplace() {
   const [selectedType, setSelectedType] = useState<'सभी' | 'खरीदें' | 'बेचें'>('सभी');
   const [selectedCategory, setSelectedCategory] = useState('सभी');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MarketItem | null>(null);
-  const [items, setItems] = useState<MarketItem[]>(marketItems);
+  const [items, setItems] = useState<MarketItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [activeField, setActiveField] = useState<string>('');
-  
+
   // Form state for adding new advertisement
   const [formData, setFormData] = useState({
     type: 'बेचें' as 'खरीदें' | 'बेचें',
@@ -71,7 +70,26 @@ export default function Marketplace() {
     return productsByCategory[formData.category] || [];
   };
 
-  const handleAddAdvertisement = () => {
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/marketplace', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success) {
+        setItems(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching marketplace items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddAdvertisement = async () => {
     // Validate form
     if (!formData.category || !formData.item || !formData.price || !formData.quantity || !formData.seller || !formData.location || !formData.phone || !formData.description) {
       alert('कृपया सभी फ़ील्ड भरें');
@@ -84,48 +102,79 @@ export default function Marketplace() {
       return;
     }
 
-    // Create new item
-    const newItem: MarketItem = {
-      id: items.length + 1,
-      type: formData.type,
-      category: formData.category,
-      item: formData.item,
-      price: parseFloat(formData.price),
-      unit: formData.unit,
-      quantity: formData.quantity,
-      seller: formData.seller,
-      location: formData.location,
-      phone: formData.phone,
-      description: formData.description,
-      postedDate: 'अभी'
-    };
+    try {
+      // Create new item
+      const newItem = {
+        type: formData.type,
+        category: formData.category,
+        item: formData.item,
+        price: parseFloat(formData.price),
+        unit: formData.unit,
+        quantity: formData.quantity,
+        seller: formData.seller,
+        location: formData.location,
+        phone: formData.phone,
+        description: formData.description,
+      };
 
-    // Add to items list
-    setItems([newItem, ...items]);
-    
-    // Reset form
-    setFormData({
-      type: 'बेचें',
-      category: '',
-      item: '',
-      price: '',
-      unit: 'क्विंटल',
-      quantity: '',
-      seller: '',
-      location: '',
-      phone: '',
-      description: ''
-    });
-    
-    setShowAddModal(false);
-    alert('आपका विज्ञापन सफलतापूर्वक जोड़ा गया!');
+      const res = await fetch('/api/marketplace', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newItem),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // Add to items list
+        setItems([data.data, ...items]);
+
+        // Reset form
+        setFormData({
+          type: 'बेचें',
+          category: '',
+          item: '',
+          price: '',
+          unit: 'क्विंटल',
+          quantity: '',
+          seller: '',
+          location: '',
+          phone: '',
+          description: ''
+        });
+
+        setShowAddModal(false);
+        alert('आपका विज्ञापन सफलतापूर्वक जोड़ा गया!');
+      } else {
+        alert(data.error || 'विज्ञापन जोड़ने में विफल');
+      }
+    } catch (error) {
+      console.error('Error adding advertisement:', error);
+      alert('विज्ञापन जोड़ते समय कोई त्रुटि हुई');
+    }
   };
 
-  const handleDeleteItem = (itemId: number, e: React.MouseEvent) => {
+  const handleDeleteItem = async (itemId: string | number, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening item details
     if (confirm('क्या आप वाकई इस विज्ञापन को हटाना चाहते हैं?')) {
-      setItems(items.filter(item => item.id !== itemId));
-      alert('विज्ञापन सफलतापूर्वक हटा दिया गया!');
+      try {
+        const res = await fetch(`/api/marketplace/${itemId}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          setItems(items.filter(item => item.id !== itemId));
+          alert('विज्ञापन सफलतापूर्वक हटा दिया गया!');
+        } else {
+          alert(data.error || 'विज्ञापन हटाने में विफल');
+        }
+      } catch (error) {
+        console.error('Error deleting advertisement:', error);
+        alert('विज्ञापन हटाते समय कोई त्रुटि हुई');
+      }
     }
   };
 
@@ -151,10 +200,10 @@ export default function Marketplace() {
   const filteredItems = items.filter(item => {
     const matchesType = selectedType === 'सभी' || item.type === selectedType;
     const matchesCategory = selectedCategory === 'सभी' || item.category === selectedCategory;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       item.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesType && matchesCategory && matchesSearch;
   });
 
@@ -166,7 +215,7 @@ export default function Marketplace() {
             <Store className="w-5 h-5 mr-2 text-orange-500" />
             बाजार
           </h2>
-          <button 
+          <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center space-x-1 text-sm bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700 transition-colors"
           >
@@ -183,11 +232,10 @@ export default function Marketplace() {
               <button
                 key={type}
                 onClick={() => setSelectedType(type)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedType === type
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedType === type
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {type}
               </button>
@@ -200,11 +248,10 @@ export default function Marketplace() {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedCategory === category
+                  ? 'bg-orange-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {category}
               </button>
@@ -225,79 +272,84 @@ export default function Marketplace() {
         </div>
 
         {/* Market Items */}
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-all cursor-pointer"
-              onClick={() => setSelectedItem(item)}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      item.type === 'बेचें' 
-                        ? 'bg-green-100 text-green-700' 
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {filteredItems.map((item) => (
+              <div
+                key={item.id}
+                className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 hover:shadow-md transition-all cursor-pointer"
+                onClick={() => setSelectedItem(item)}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${item.type === 'बेचें'
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {item.type}
-                    </span>
-                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
-                      {item.category}
-                    </span>
+                        }`}>
+                        {item.type}
+                      </span>
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                        {item.category}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-lg">{item.item}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{item.description}</p>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg">{item.item}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                  <div className="text-right ml-4">
+                    <p className="text-2xl font-bold text-orange-600">₹{item.price}</p>
+                    <p className="text-xs text-gray-500">प्रति {item.unit}</p>
+                  </div>
                 </div>
-                <div className="text-right ml-4">
-                  <p className="text-2xl font-bold text-orange-600">₹{item.price}</p>
-                  <p className="text-xs text-gray-500">प्रति {item.unit}</p>
+
+                <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <ShoppingCart className="w-4 h-4 mr-1" />
+                    <span>{item.quantity}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    <span>{item.location}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-orange-200">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <User className="w-4 h-4 mr-1" />
+                    <span>{item.seller}</span>
+                  </div>
+                  <div className="flex flex-col items-end space-y-1">
+                    <button
+                      onClick={(e) => handleDeleteItem(item.id, e)}
+                      className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors flex items-center space-x-1"
+                      title="विज्ञापन हटाएं"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>हटाएं</span>
+                    </button>
+                    <span className="text-xs text-gray-500">{item.postedDate}</span>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        )}
 
-              <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
-                <div className="flex items-center text-gray-600">
-                  <ShoppingCart className="w-4 h-4 mr-1" />
-                  <span>{item.quantity}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <MapPin className="w-4 h-4 mr-1" />
-                  <span>{item.location}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-orange-200">
-                <div className="flex items-center text-sm text-gray-600">
-                  <User className="w-4 h-4 mr-1" />
-                  <span>{item.seller}</span>
-                </div>
-                <div className="flex flex-col items-end space-y-1">
-                  <button
-                    onClick={(e) => handleDeleteItem(item.id, e)}
-                    className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors flex items-center space-x-1"
-                    title="विज्ञापन हटाएं"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    <span>हटाएं</span>
-                  </button>
-                  <span className="text-xs text-gray-500">{item.postedDate}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
+        {(!isLoading && filteredItems.length === 0) && (
           <div className="text-center py-12 text-gray-500">
             <Store className="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium mb-2">कोई विज्ञापन नहीं मिला</p>
             <p className="text-sm text-gray-400 mb-4">
-              {items.length === 0 
+              {items.length === 0
                 ? 'अभी तक कोई विज्ञापन नहीं है। पहले विज्ञापन देने वाले बनें!'
                 : 'इस श्रेणी में कोई उत्पाद नहीं मिला। अलग फ़िल्टर आज़माएं।'
               }
             </p>
-            <button 
+            <button
               onClick={() => setShowAddModal(true)}
               className="inline-flex items-center space-x-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors"
             >
@@ -325,11 +377,10 @@ export default function Marketplace() {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    selectedItem.type === 'बेचें' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${selectedItem.type === 'बेचें'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-blue-100 text-blue-700'
+                    }`}>
                     {selectedItem.type}
                   </span>
                   <span className="text-sm bg-orange-100 text-orange-700 px-3 py-1 rounded-full">
@@ -403,11 +454,11 @@ export default function Marketplace() {
 
       {/* Add Item Modal */}
       {showAddModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowAddModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
@@ -432,11 +483,10 @@ export default function Marketplace() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: 'बेचें' })}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
-                      formData.type === 'बेचें'
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-colors ${formData.type === 'बेचें'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                   >
                     <ShoppingCart className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-medium">बेचना है</div>
@@ -444,11 +494,10 @@ export default function Marketplace() {
                   <button
                     type="button"
                     onClick={() => setFormData({ ...formData, type: 'खरीदें' })}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
-                      formData.type === 'खरीदें'
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`p-4 rounded-lg border-2 transition-colors ${formData.type === 'खरीदें'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300'
+                      }`}
                   >
                     <Store className="w-6 h-6 mx-auto mb-2" />
                     <div className="font-medium">खरीदना है</div>
