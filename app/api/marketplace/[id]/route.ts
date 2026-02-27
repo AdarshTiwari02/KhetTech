@@ -4,12 +4,13 @@ import { MarketItem } from '@/lib/db/models/MarketItem';
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         await connectToDatabase();
+        const { id } = await params;
 
-        const deletedItem = await MarketItem.findByIdAndDelete(params.id);
+        const deletedItem = await MarketItem.findByIdAndDelete(id);
 
         if (!deletedItem) {
             return NextResponse.json(
